@@ -1,0 +1,250 @@
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kalkulator Gabungan 4D BBFS</title>
+<style>
+*{box-sizing:border-box}
+body{
+  margin:0;padding:15px;
+  background:#07111f;color:#f1f5f9;
+  font-family:Arial,sans-serif
+}
+main{max-width:600px;margin:auto}
+h1{font-size:23px;text-align:center}
+.sub{text-align:center;color:#94a3b8;font-size:13px}
+.card{
+  background:#101d30;border:1px solid #263c58;
+  border-radius:14px;padding:15px;margin:14px 0
+}
+h2{font-size:17px;margin-top:0}
+label{display:block;font-size:13px;margin:12px 0 6px}
+input{
+  width:100%;padding:12px;border-radius:9px;
+  border:1px solid #344b68;background:#071525;
+  color:white;font-size:16px
+}
+button{
+  width:100%;padding:13px;border:0;border-radius:9px;
+  font-size:15px;font-weight:bold;margin-top:10px
+}
+.hit{background:#4285ff;color:white}
+.reset{background:#34445a;color:white}
+.copy{background:#168567;color:white}
+.pairs{
+  display:grid;grid-template-columns:repeat(2,1fr);gap:8px
+}
+.pair{
+  background:#071525;border:1px solid #263c58;
+  border-radius:8px;padding:10px;font-size:13px
+}
+.pair b{display:block;color:#80adff;margin-bottom:5px}
+.result{
+  background:#071525;border:1px solid #263c58;
+  border-radius:9px;padding:12px;margin:9px 0;
+  overflow-wrap:anywhere
+}
+.result b{display:block;color:#9aabc0;font-size:12px;margin-bottom:7px}
+.value{font-size:16px;font-weight:bold}
+.note{font-size:12px;line-height:1.6;color:#94a3b8}
+</style>
+</head>
+<body>
+<main>
+<h1>KALKULATOR 4D BBFS</h1>
+<p class="sub">ML + Mb + Index + Tysen + Mistik 9 + Mistik 0</p>
+
+<section class="card">
+<h2>Input Angka</h2>
+<label for="angka">Angka dasar</label>
+<input id="angka" inputmode="numeric"
+       maxlength="30" placeholder="Contoh: 1234" value="1234">
+
+<label for="jumlah">Jumlah kombinasi 4D</label>
+<input id="jumlah" type="number" min="1" max="500" value="20">
+
+<button class="hit" onclick="hitung()">HITUNG</button>
+<button class="reset" onclick="resetForm()">RESET</button>
+</section>
+
+<section class="card">
+<h2>Tabel Rumus</h2>
+<div class="pairs" id="tabel"></div>
+</section>
+
+<section class="card" id="hasil" aria-live="polite">
+<h2>Hasil Gabungan</h2>
+<p class="note">Masukkan angka lalu tekan HITUNG.</p>
+</section>
+
+<p class="note">
+Catatan: kalkulator ini mengolah tabel pasangan angka.
+Hasilnya bukan prediksi yang terbukti akurat dan tidak
+menjamin hasil undian.
+</p>
+</main>
+
+<script>
+const rumus = [
+ {nama:"ML / Mistik Lama",pasangan:[
+  "01","25","38","47","69"]},
+ {nama:"Mb / Mistik Baru",pasangan:[
+  "08","26","39","45","71"]},
+ {nama:"Index",pasangan:[
+  "05","27","38","49","16"]},
+ {nama:"Ty / Tysen",pasangan:[
+  "07","29","36","41","58"]},
+ {nama:"Mistik 0",pasangan:[
+  "06","15","28","37","49"]},
+ {nama:"Mistik 9",pasangan:[
+  "09","18","27","36","45"]}
+];
+
+const unik = teks => [...new Set(teks)].join("");
+
+document.getElementById("tabel").innerHTML =
+rumus.map(r =>
+ `<div class="pair"><b>${r.nama}</b>${r.pasangan.join(" · ")}</div>`
+).join("");
+
+/* Satu peta gabungan dari keenam tabel */
+const semuaPasangan = rumus.flatMap(r=>r.pasangan);
+
+const peta = {};
+for(let n=0;n<=9;n++){
+ const d=String(n);
+ peta[d]=unik(
+   semuaPasangan
+    .filter(p=>p[0]===d || p[1]===d)
+    .join("")
+ );
+}
+
+/* Gabungkan semua pasangan sesuai angka dasar */
+function gabung(angka){
+ let hasil="";
+ for(const d of unik(angka)){
+   hasil += peta[d] || "";
+ }
+ return unik(hasil);
+}
+
+/* Bentuk kombinasi 4D dari BBFS */
+function kombinasi4D(bbfs,maks){
+ const hasil=[];
+ const n=bbfs.length;
+ if(n===0)return hasil;
+
+ for(let a=0;a<n;a++){
+  for(let b=0;b<n;b++){
+   for(let c=0;c<n;c++){
+    for(let d=0;d<n;d++){
+     const nomor=
+       bbfs[a]+bbfs[b]+bbfs[c]+bbfs[d];
+     if(!hasil.includes(nomor)){
+       hasil.push(nomor);
+       if(hasil.length>=maks)return hasil;
+     }
+    }
+   }
+  }
+ }
+ return hasil;
+}
+
+function kotak(judul,nilai){
+ return `<div class="result">
+ <b>${judul}</b><div class="value">${nilai||"-"}</div>
+ </div>`;
+}
+
+function hitung(){
+ const angka=document.getElementById("angka")
+   .value.replace(/[^0-9]/g,"");
+
+ let jumlah=parseInt(
+   document.getElementById("jumlah").value,10
+ );
+ jumlah=Math.max(1,Math.min(500,jumlah||20));
+
+ const area=document.getElementById("hasil");
+
+ if(!angka){
+  area.innerHTML="<h2>Hasil Gabungan</h2><p>Masukkan angka dasar terlebih dahulu.</p>";
+  return;
+ }
+
+ const digitRumus=gabung(angka);
+ const bbfs=unik(angka+digitRumus);
+ const empatD=kombinasi4D(bbfs,jumlah);
+
+ const as=unik(empatD.map(x=>x[0]).join(""));
+ const cop=unik(empatD.map(x=>x[1]).join(""));
+ const kepala=unik(empatD.map(x=>x[0]).join(""));
+ const ekor=unik(empatD.map(x=>x[3]).join(""));
+
+ // Pasangan berurutan dari peta digit terpadu
+ const tarung=semuaPasangan
+   .filter(p=>bbfs.includes(p[0])&&bbfs.includes(p[1]));
+ const tarungUnik=[...new Set(tarung)].join(" · ");
+
+ const data=
+ `Angka dasar: ${angka}\n`+
+ `Digit rumus gabungan: ${digitRumus}\n`+
+ `BBFS: ${bbfs}\n`+
+ `Kombinasi 4D: ${empatD.join(", ")}\n`+
+ `Angka tarung: ${tarungUnik}\n`+
+ `AS: ${as}\nCOP: ${cop}\n`+
+ `Kepala: ${kepala}\nEkor: ${ekor}`;
+
+ window.hasilSalin=data;
+
+ area.innerHTML=
+ `<h2>Hasil Satu Rumus Gabungan</h2>`+
+ kotak("Angka dasar",angka)+
+ kotak("Digit hasil gabungan enam rumus",digitRumus)+
+ kotak("BBFS — digit unik",bbfs)+
+ kotak("Kombinasi 4D",empatD.join(" · "))+ 
+ kotak("Angka tarung",tarungUnik)+
+ kotak("AS",as)+
+ kotak("COP",cop)+
+ kotak("Kepala",kepala)+
+ kotak("Ekor",ekor)+
+ `<p class="note">
+ Seluruh pasangan dari enam tabel diolah sebagai satu peta.
+ Kombinasi 4D disusun sistematis dari digit BBFS.
+ AS/COP dan kepala/ekor diambil dari posisi digit kombinasi.
+ Definisi ini adalah metode pengolahan angka, bukan jaminan
+ hasil undian.
+ </p><button class="copy" onclick="salin()">SALIN HASIL</button>`;
+}
+
+async function salin(){
+ if(!window.hasilSalin)return;
+ try{
+  await navigator.clipboard.writeText(window.hasilSalin);
+  alert("Hasil berhasil disalin.");
+ }catch(e){
+  const t=document.createElement("textarea");
+  t.value=window.hasilSalin;
+  document.body.appendChild(t);
+  t.select();
+  document.execCommand("copy");
+  t.remove();
+  alert("Hasil disalin jika clipboard didukung browser.");
+ }
+}
+
+function resetForm(){
+ document.getElementById("angka").value="";
+ document.getElementById("jumlah").value="20";
+ document.getElementById("hasil").innerHTML=
+ '<h2>Hasil Gabungan</h2><p class="note">Masukkan angka lalu tekan HITUNG.</p>';
+ window.hasilSalin="";
+}
+hitung();
+</script>
+</body>
+</html>
